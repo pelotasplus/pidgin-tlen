@@ -1,0 +1,55 @@
+PREFIX?=${LOCALBASE}
+GTK?=	../win32-dev/gtk_2_0
+GAIM?=	../gaim
+CFLAGS+=-I$(GAIM)/src \
+	-I$(GAIM)/src/win32 \
+	-I. \
+	-I$(GTK)/include \
+	-I$(GTK)/include/gtk-2.0 \
+	-I$(GTK)/include/glib-2.0 \
+	-I$(GTK)/include/pango-1.0 \
+	-I$(GTK)/include/atk-1.0 \
+	-I$(GTK)/lib/glib-2.0/include \
+	-I$(GTK)/lib/gtk-2.0/include \
+	-I$(GAIM) \
+	-DHAVE_CONFIG_H \
+	-g \
+	-Wall
+LDFLAGS=-L$(GTK)/lib \
+	-L$(GAIM)/src \
+	-lgtk-win32-2.0 \
+	-lglib-2.0 \
+	-lgdk-win32-2.0 \
+	-lgmodule-2.0 \
+	-lgobject-2.0 \
+	-lws2_32 \
+	-lintl \
+	-lgaim
+DATE=	`date +%Y%m%d`
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+OBJS=	auth.o tlen.o chat.o
+
+all: ${OBJS}
+	$(CC) -shared $(OBJS) $(LDFLAGS) $(LIBS) \
+		-Wl,--enable-auto-image-base \
+		-Wl,--out-implib,libtlen.lib \
+		-o libtlen.dll
+
+clean:
+	rm -f ${OBJS} libtlen.lib libtlen.dll
+	
+install:
+	cp libtlen.dll /cygdrive/c/Program\ Files/Gaim/plugins/
+	cp tlen.png /cygdrive/c/Program\ Files/Gaim/pixmaps/gaim/status/default/tlen.png
+
+dist: all
+	rm -f gaim-tlen-${DATE}-win32.zip
+	rm -rf gaim-tlen-${DATE}-win32
+	mkdir gaim-tlen-${DATE}-win32
+	cp README* libtlen.dll gaim-tlen-${DATE}-win32
+	cp tlen.png gaim-tlen-${DATE}-win32/tlen.png
+	zip -9 -r gaim-tlen-${DATE}-win32.zip gaim-tlen-${DATE}-win32
+	rm -rf gaim-tlen-${DATE}-win32
