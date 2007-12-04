@@ -17,17 +17,6 @@
 #ifndef TLEN_CHAT_H
 #define TLEN_CHAT_H
 
-#include "account.h"
-#include "accountopt.h"
-#include "debug.h"
-#include "notify.h"
-#include "request.h"
-#include "server.h"
-#include "util.h"
-#include "version.h"
-#include "roomlist.h"
-#include "xmlnode.h"
-
 #include "tlen.h"
 	
 GList *tlen_chat_info(PurpleConnection *gc);

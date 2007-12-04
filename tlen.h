@@ -26,10 +26,23 @@
 #include <glib.h>
 #include <fcntl.h>
 
-#ifdef __MINGW32__
-#include "libc_interface.h"
-#endif /* __MINGW32__ */
+#define PURPLE_PLUGINS
 
+/* from libpurple/internal.h */
+#ifndef G_GNUC_NULL_TERMINATED
+#  if __GNUC__ >= 4
+#    define G_GNUC_NULL_TERMINATED __attribute__((__sentinel__))
+#  else
+#    define G_GNUC_NULL_TERMINATED
+#  endif /* __GNUC__ >= 4 */
+#endif /* G_GNUC_NULL_TERMINATED */
+
+/* pidgin headers */
+#include <version.h>
+#include <xmlnode.h>
+#include <account.h>
+#include <debug.h>
+#include <request.h>
 
 #ifdef ENABLE_NLS
 #  include <locale.h>
@@ -45,7 +58,17 @@
 #  define _(x) ((char *)x)
 #endif
 
-#define TLEN_VERSION	"20070512"
+#if 0
+#ifndef G_GNUC_NULL_TERMINATED
+#       if     __GNUC__ >= 4
+#               define G_GNUC_NULL_TERMINATED __attribute__((__sentinel__))
+#       else
+#               define G_GNUC_NULL_TERMINATED
+#       endif
+#endif
+#endif
+
+#define TLEN_VERSION	"20071204"
 
 #define SERVER_ADDRESS	"s1.tlen.pl"
 #define SERVER_PORT	443
