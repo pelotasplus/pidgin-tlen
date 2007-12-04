@@ -14,11 +14,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "chat.h"
+
 #include "prpl.h"
 #include "conversation.h"
 #include "server.h"
-
-#include "chat.h"
 
 #define TLEN_CHAT_GET_TOPLEVEL_GROUPS	"<iq to='c' type='1'/>"
 #define TLEN_CHAT_EXPAND_GROUP		"<iq to='c' type='1' p='%s'/><iq to='c' type='2' p='%s'/>"
