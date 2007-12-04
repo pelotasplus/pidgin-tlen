@@ -14,7 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define PURPLE_PLUGINS
+#include "tlen.h"
+#include "wb.h"
 
 #include "account.h"
 #include "accountopt.h"
@@ -25,9 +26,6 @@
 #include "util.h"
 #include "version.h"
 #include "xmlnode.h"
-
-#include "tlen.h"
-#include "wb.h"
 
 struct tlen_wb {
 	int brush_size;		/* their brush settings */
