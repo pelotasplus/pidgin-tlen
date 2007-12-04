@@ -14,18 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define PURPLE_PLUGINS
-
-#include "account.h"
-#include "accountopt.h"
-#include "debug.h"
-#include "notify.h"
-#include "request.h"
-#include "server.h"
-#include "util.h"
-#include "version.h"
-#include "xmlnode.h"
-	
 #include "tlen.h"
 #include "chat.h"
 #include "wb.h"
@@ -1494,6 +1482,7 @@ tlen_login(PurpleAccount *account)
 	gc->proto_data = g_new0(TlenSession, 1);
 
 	tlen = gc->proto_data;
+	tlen->fd = -1;
 
 	tlen->user = g_strdup(purple_account_get_username(account));
 	if (!tlen->user) {
@@ -1509,7 +1498,6 @@ tlen_login(PurpleAccount *account)
 
 	tlen->account = account;
 	tlen->roster_parsed = 0;
-	tlen->fd = -1;
 	tlen->gc = gc;
 	tlen->context = g_markup_parse_context_new(&parser, 0, tlen, NULL);
 	tlen->password = g_strdup(purple_account_get_password(account));
