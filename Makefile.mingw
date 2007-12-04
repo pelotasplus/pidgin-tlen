@@ -1,8 +1,9 @@
+CC=	gcc.exe
 PREFIX?=${LOCALBASE}
 GTK?=	../win32-dev/gtk_2_0
-GAIM?=	../gaim
-CFLAGS+=-I$(GAIM)/src \
-	-I$(GAIM)/src/win32 \
+GAIM?=	../pidgin-2.3.0
+CFLAGS+=-I$(GAIM)/libpurple \
+	-I$(GAIM)/libpurple/win32 \
 	-I. \
 	-I$(GTK)/include \
 	-I$(GTK)/include/gtk-2.0 \
@@ -11,39 +12,47 @@ CFLAGS+=-I$(GAIM)/src \
 	-I$(GTK)/include/atk-1.0 \
 	-I$(GTK)/lib/glib-2.0/include \
 	-I$(GTK)/lib/gtk-2.0/include \
-	-I$(GAIM) \
 	-DHAVE_CONFIG_H \
 	-g \
 	-Wall
+#CFLAGS+=-Waggregate-return -Wcast-align -Wdeclaration-after-statement -Werror-implicit-function-declaration -Wextra
+#CFLAGS+=-Wno-sign-compare -Wno-unused-parameter -Winit-self -Wmissing-declarations -Wmissing-prototypes -Wnested-externs
+#CFLAGS+=-Wpointer-arith -Wundef
+CFLAGS+=-pipe -mno-cygwin -mms-bitfields
+CFLAGS+=-include win32dep.h
+
+# -g -include win32dep.h -DHAVE_CONFIG_H -I. -I./lib -I../../../../win32-dev/gtk_2_0/include -I../../../../win32-dev/gtk_2_0/i
+#nclude/glib-2.0 -I../../../../win32-dev/gtk_2_0/lib/glib-2.0/include -I../../../libpurple -I../../../libpurple/win32 -I../../.. -o gg-utils.
+#o -c gg-utils.c
+
 LDFLAGS=-L$(GTK)/lib \
-	-L$(GAIM)/src \
-	-lgtk-win32-2.0 \
+	-L$(GAIM)/libpurple \
 	-lglib-2.0 \
-	-lgdk-win32-2.0 \
-	-lgmodule-2.0 \
-	-lgobject-2.0 \
-	-lws2_32 \
 	-lintl \
-	-lgaim
+	-lpurple \
+	-lws2_32
 DATE=	`date +%Y%m%d`
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-OBJS=	auth.o tlen.o chat.o
+OBJS=	auth.o tlen.o chat.o wb.o
 
 all: ${OBJS}
 	$(CC) -shared $(OBJS) $(LDFLAGS) $(LIBS) \
 		-Wl,--enable-auto-image-base \
-		-Wl,--out-implib,libtlen.lib \
 		-o libtlen.dll
 
 clean:
 	rm -f ${OBJS} libtlen.lib libtlen.dll
 	
 install:
-	cp libtlen.dll /cygdrive/c/Program\ Files/Gaim/plugins/
-	cp tlen.png /cygdrive/c/Program\ Files/Gaim/pixmaps/gaim/status/default/tlen.png
+	cp libtlen.dll /cygdrive/c/Program\ Files/Pidgin/plugins/
+	for i in 16 22 48; do \
+		mkdir -p /cygdrive/c/Program\ Files/Pidgin/pixmaps/pidgin/protocols/$$i/; \
+		cp tlen_$$i.png \
+			/cygdrive/c/Program\ Files/Pidgin/pixmaps/pidgin/protocols/$$i/tlen.png; \
+	done
 
 dist: all
 	rm -f gaim-tlen-${DATE}-win32.zip
@@ -53,3 +62,9 @@ dist: all
 	cp tlen.png gaim-tlen-${DATE}-win32/tlen.png
 	zip -9 -r gaim-tlen-${DATE}-win32.zip gaim-tlen-${DATE}-win32
 	rm -rf gaim-tlen-${DATE}-win32
+
+tags: *.c *.h
+	ctags *
+	ctags -R ${GAIM}/libpurple
+
+.PHONY: tags
