@@ -13,11 +13,7 @@ CFLAGS+=-I$(GAIM)/libpurple \
 	-I$(GTK)/lib/glib-2.0/include \
 	-I$(GTK)/lib/gtk-2.0/include \
 	-DHAVE_CONFIG_H \
-	-g \
-	-Wall
-#CFLAGS+=-Waggregate-return -Wcast-align -Wdeclaration-after-statement -Werror-implicit-function-declaration -Wextra
-#CFLAGS+=-Wno-sign-compare -Wno-unused-parameter -Winit-self -Wmissing-declarations -Wmissing-prototypes -Wnested-externs
-#CFLAGS+=-Wpointer-arith -Wundef
+	-Wall -Werror
 CFLAGS+=-pipe -mno-cygwin -mms-bitfields
 CFLAGS+=-include win32dep.h
 
