@@ -1,0 +1,16 @@
+
+ * parsing news items:
+
+	<message from='newspub'>
+		<x>
+		<items node='o2/kraj'>
+		<item>
+			<title>Krak%F3w%3A+Na+Franciszka%F1skiej+p%B3on%B1+tysi%B1ce+zniczy+%28akt.+18%3A51%3A24%29</title>
+			<date>2006-04-02 18:51:24</date>
+			<url>http%3A%2F%2Fwiadomosci.o2.pl%2F%3Fs%3D257%26t%3D205599</url>
+			<text>Pod+papieskim+oknem+na+ul.+Franciszka%F1skiej+3+w+Krakowie+p%B3on%B1+tysi%B1ce+zniczy.+Przez+ca%B3%B1+niedziel%EA+ludzie+przychodz%B1+tam%2C+by+odda%E6+ho%B3d+Janowi+Paw%B3owi+II.</text>
+		</item>
+		</items>
+		</x>
+	</message>
+	<message from='newspub'><x><items node='o2/wiadomosci'/></x></message>

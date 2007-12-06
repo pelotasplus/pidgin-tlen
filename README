@@ -1,12 +1,13 @@
-eopyright 2005-2007 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
+Copyright 2005-2007 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
 
 This is Tlen.pl protocol plugin for Pidgin.  For more information, the latest
 version, tips'n'tricks, etc. check the official website:
 
 	http://nic.com.pl/~alek/pidgin-tlen/
 
-This plugin is developed (and tested) on OpenBSD for Pidgin 2.0.0
+This plugin is developed (and tested) on OpenBSD for Pidgin 2.3.0
 Most probably it only works with this particular version of Pidgin.
+Windows version was complied on Windows XP box.
 
 What is supported:
  * IMs
@@ -24,20 +25,8 @@ from your favourite emote set to a directory named 'emote_set' in the source
 directory then invoke 'make emotes'. Almost no error checking is performed,
 expect trouble.
 
-TODO:
+Installation instructions for Windows users:
 
- * parsing news items:
-
-	<message from='newspub'>
-		<x>
-		<items node='o2/kraj'>
-		<item>
-			<title>Krak%F3w%3A+Na+Franciszka%F1skiej+p%B3on%B1+tysi%B1ce+zniczy+%28akt.+18%3A51%3A24%29</title>
-			<date>2006-04-02 18:51:24</date>
-			<url>http%3A%2F%2Fwiadomosci.o2.pl%2F%3Fs%3D257%26t%3D205599</url>
-			<text>Pod+papieskim+oknem+na+ul.+Franciszka%F1skiej+3+w+Krakowie+p%B3on%B1+tysi%B1ce+zniczy.+Przez+ca%B3%B1+niedziel%EA+ludzie+przychodz%B1+tam%2C+by+odda%E6+ho%B3d+Janowi+Paw%B3owi+II.</text>
-		</item>
-		</items>
-		</x>
-	</message>
-	<message from='newspub'><x><items node='o2/wiadomosci'/></x></message>
+	1) copy libtlen.dll to c:\Program Files\Pidgin\plugins director
+	2) for each tlen_XX.png file copy it to relevant directory:
+		c:\Program Files\Pidgin\pixmaps\pidgin\protocols\XX\tlen.png
