@@ -1118,10 +1118,8 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 		PurpleGroup *g, *tlen_group, *oldb_group;
 		PurpleBuddy *b;
 		TlenBuddy *tb;
-		int size;
 		char *jid, *name, *subscription, *group;
 
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "roster=\n%s\n", xmlnode_to_formatted_str(xml, &size));
 
 		query = xmlnode_get_child(xml, "query");
 		if (!query) {
@@ -1185,33 +1183,20 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 
 			b = purple_find_buddy(tlen->gc->account, jid);
 			if (b) {
-				purple_debug_info("tlen", "already have this buddy %p\n", b);
-
-				/* Buddy from blist is in different group than roster says. Remove that buddy
-				 * and add it once again */
-				oldb_group = purple_buddy_get_group(b);
-				if (strcmp(oldb_group->name, g->name) != 0) {
-					purple_blist_remove_buddy(b);
-					b = NULL;
-				/* Different alias than one from blist?  Replace it with correct one from roster */
-				} else if (b->alias && strcmp(b->alias, name) != 0) {
-					purple_blist_alias_buddy(b, name);
-				} 
+				purple_debug_info("tlen", "already have buddy %s as %p so let's remove it\n", jid, b);
+				purple_blist_remove_buddy(b);
 			}
 
-			/* There is no such buddy (because that buddy is brand new or old one wasn't up-to-date */
-			if (!b) {
-				purple_debug(PURPLE_DEBUG_INFO, "tlen", "adding new user: %s\n", jid);
-				b = purple_buddy_new(tlen->gc->account, jid, name);
-				purple_blist_add_buddy(b, NULL, g, NULL);
-			}
+			purple_debug(PURPLE_DEBUG_INFO, "tlen", "and add it once again this time from roster\n");
 
-			if (b->proto_data == NULL) {
-				purple_debug_info("tlen", "adding tb\n");
-				b->proto_data = g_new0(TlenBuddy, 1);
-				tb = b->proto_data;
-				tb->subscription = tlen_parse_subscription(subscription);
-			}
+			b = purple_buddy_new(tlen->gc->account, jid, name);
+
+			b->proto_data = g_new0(TlenBuddy, 1);
+			tb = b->proto_data;
+			tb->subscription = tlen_parse_subscription(subscription);
+
+			purple_blist_add_buddy(b, NULL, g, NULL);
+
 			g_free(name);
 
 			purple_blist_alias_buddy(b, b->alias);
@@ -1256,9 +1241,12 @@ static int
 tlen_process_data(TlenSession *tlen, xmlnode *xml)
 {
 	int ret = 0;
+	int size;
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_process_data\n");
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "name=%s\n", xml->name);
+	purple_debug(PURPLE_DEBUG_INFO, "tlen", "xml->name %s\n", xml->name);
+
+	purple_debug(PURPLE_DEBUG_INFO, "tlen", "xml=\n%s\n", xmlnode_to_formatted_str(xml, &size));
 
 	/* authorization, chat query responses */
 	if (strncmp(xml->name, "iq", 2) == 0) {
@@ -1285,13 +1273,14 @@ tlen_parser_element_end(GMarkupParseContext *context,
 	const gchar *element_name, gpointer user_data, GError **error)
 {
 	TlenSession *tlen = user_data;
-	//int ret;
 
+/*
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_parser_element_end\n");
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "element_name=\"%s\"\n", element_name);
+ */
 
 	if (tlen->xml == NULL) {
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "tlen->xml == NULL\n");
+		purple_debug(PURPLE_DEBUG_INFO, "tlen", "-- tlen_parser_element_end tlen->xml == NULL\n");
 		return;
 	}
 
@@ -1306,7 +1295,9 @@ tlen_parser_element_end(GMarkupParseContext *context,
 		tlen->xml = NULL;
         }
 
+/*
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_parser_element_end\n");
+ */
 }
 
 static void
@@ -1315,15 +1306,19 @@ tlen_parser_element_text(GMarkupParseContext *context, const char *text,
 {
 	TlenSession *tlen = user_data;
 
+/*
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_parser_element_text\n");
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "text_len=%d text=\"%s\"\n", text_len, text);
+ */
 
 	if (tlen->xml == NULL || text_len <= 0)
 		return;
 
 	xmlnode_insert_data(tlen->xml, text, text_len);
 
+/*
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_parser_element_text\n");
+ */
 }
 
 static GMarkupParser parser = {
@@ -1387,7 +1382,9 @@ tlen_input_parse(PurpleConnection *gc, const char *buf, int len)
 {
 	TlenSession *tlen = gc->proto_data;
 
+/*
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_input_parse\n");
+ */
 
 	if (!g_markup_parse_context_parse(tlen->context, buf, len, NULL)) {
 		g_markup_parse_context_free(tlen->context);
@@ -1396,7 +1393,9 @@ tlen_input_parse(PurpleConnection *gc, const char *buf, int len)
 		return;
         }
 
+/*
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_input_parse\n");
+ */
 }
 
 void
@@ -1404,15 +1403,13 @@ tlen_input_cb(gpointer data, gint source, PurpleInputCondition cond)
 {
 	PurpleConnection *gc = data;
 	TlenSession    *tlen = gc->proto_data;
-	/* char            buf[100]; //TLEN_BUFSIZE+1]; */
 	char            buf[TLEN_BUFSIZE];
 	int             len;
-//	int             ret;
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_input_cb: fd=%d\n", tlen->fd);
 
 	if (tlen->fd < 0) {
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "tlen->fd < 0");
+		purple_debug(PURPLE_DEBUG_INFO, "tlen", "tlen->fd %d < 0", tlen->fd);
 		return;
 	}
 
@@ -1426,11 +1423,11 @@ tlen_input_cb(gpointer data, gint source, PurpleInputCondition cond)
 	}
 	buf[len] = '\0';
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "data=%s\n", buf);
+	purple_debug(PURPLE_DEBUG_INFO, "tlen", "got %d byte(s): '%s'\n", len, buf);
 
 	tlen_input_parse(gc, buf, len);
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_input_cb()\n");
+	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_input_cb\n");
 }
 
 void
@@ -1989,9 +1986,8 @@ tlen_status_text(PurpleBuddy *b)
 
 	tb = (TlenBuddy *) b->proto_data;
 
-	purple_debug_info("tlen", "-> tlen_status_text: %s tb=%p\n", b->name, tb);
-
-	if (!tb || (tb && tb->subscription == SUB_NONE)) {
+	// if (!tb || (tb && tb->subscription == SUB_NONE)) {
+	if (tb && tb->subscription == SUB_NONE) {
 		text = g_strdup(_("Not Authorized"));
 	} else {
 		status = purple_presence_get_active_status(purple_buddy_get_presence(b));
@@ -2007,7 +2003,7 @@ tlen_status_text(PurpleBuddy *b)
 		}
 	}
 
-	purple_debug_info("tlen", "<- tlen_status_text: ret=%s\n", text ? text : "NULL");
+	purple_debug_info("tlen", "-- tlen_status_text: %s tb %p ret '%s'\n", b->name, tb, text ? text : "NULL");
 
 	return text;
 }
