@@ -1115,7 +1115,7 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 		purple_debug(PURPLE_DEBUG_INFO, "tlen", "roster stuff\n");
 		xmlnode *query, *item;
 		xmlnode *groupxml;
-		PurpleGroup *g, *tlen_group, *oldb_group;
+		PurpleGroup *g, *tlen_group;
 		PurpleBuddy *b;
 		TlenBuddy *tb;
 		char *jid, *name, *subscription, *group;
