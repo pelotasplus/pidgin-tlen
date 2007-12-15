@@ -232,27 +232,26 @@ tlen_send(TlenSession *tlen, char *command)
 {
 	int ret;
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_send\n");
-
 	if (tlen == NULL) {
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "tlen is NULL!\n");
-	}
-
-	if (tlen->fd < 0) {
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_send: tlen->fd < 0\n");
+		purple_debug(PURPLE_DEBUG_INFO, "tlen", "-- tlen_send: tlen is NULL!\n");
 		return -1;
 	}
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "query=%s\n", command);
+	if (tlen->fd < 0) {
+		purple_debug(PURPLE_DEBUG_INFO, "tlen", "-- tlen_send: tlen->fd < 0\n");
+		return -1;
+	}
 
 	ret = write(tlen->fd, command, strlen(command));
 	if (ret < 0) {
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "write(): %d, %s\n", errno, strerror(errno));
+		purple_debug(PURPLE_DEBUG_INFO, "tlen", "-- tlen_send: write('%s') got %d, %s\n",
+			command, errno, strerror(errno));
 		purple_connection_error(purple_account_get_connection(tlen->account),
-		                      _("Server has disconnected"));
+			_("Server has disconnected"));
 	}
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_send: ret=%d\n", ret);
+	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-- tlen_send: write('%s') got %d\n",
+		command, ret);
 
 	return ret;
 }
@@ -669,6 +668,66 @@ tlen_process_notification(TlenSession *tlen, xmlnode *xml)
 static void
 tlen_pubdir_user_info(TlenSession *tlen, xmlnode *item)
 {
+	PurpleNotifyUserInfo *user_info;
+	int i;
+	char *decoded;
+	xmlnode *node;
+
+	const char *jid = xmlnode_get_attrib(item, "jid");
+	
+	if (!jid)
+		return;
+
+	user_info = purple_notify_user_info_new();
+
+	for (i = 0; i < sizeof(tlen_user_template)/sizeof(tlen_user_template[0]); i++) {
+		if (tlen_user_template[i].display == TlenUIE_DONTSHOW)
+			continue; 
+
+		node = xmlnode_get_child(item, tlen_user_template[i].tag);
+
+		if (!node) {
+			purple_debug_info("tlen", "%s -> %s (!node)\n", tlen_user_template[i].tag, "");
+			// row = g_list_append(row, g_strdup(""));
+			continue;
+		}
+
+		decoded = NULL;
+		if (tlen_user_template[i].format == TlenUIE_STR) {
+			decoded = tlen_decode_and_convert(xmlnode_get_data(node));
+		}
+
+		purple_debug_info("tlen", "%s -> %s\n", tlen_user_template[i].tag,
+			decoded ? decoded : "NULL"); 
+
+		if (strcmp(tlen_user_template[i].tag, "s") == 0) {
+			int gender = atoi(xmlnode_get_data(node));
+			if (gender < 0 || gender >= tlen_gender_list_size)
+				gender = 0;
+
+			purple_notify_user_info_add_pair(user_info, tlen_user_template[i].desc,
+				g_strdup(_(tlen_gender_list[gender])));
+		} else {
+			purple_notify_user_info_add_pair(user_info, tlen_user_template[i].desc,
+				decoded ? decoded : g_strdup(xmlnode_get_data(node)));
+		}
+
+		if (decoded)
+			g_free(decoded);
+	}
+
+	char full_jid[128];
+
+	snprintf(full_jid, sizeof(full_jid), "%s@tlen.pl", jid);
+
+	purple_notify_userinfo(tlen->gc,  full_jid, user_info, NULL, NULL);
+	purple_notify_user_info_destroy(user_info);
+
+}
+
+static void
+tlen_pubdir_search_info(TlenSession *tlen, xmlnode *item)
+{
 	PurpleNotifySearchResults *results;
 	PurpleNotifySearchColumn *column;
 	int i;
@@ -676,7 +735,7 @@ tlen_pubdir_user_info(TlenSession *tlen, xmlnode *item)
 	xmlnode *node;
 	char *decoded;
 
-	purple_debug_info("tlen", "-> tlen_pubdir_user_info\n");
+	purple_debug_info("tlen", "-> tlen_pubdir_search_info\n");
 
 	results = purple_notify_searchresults_new();
 	if (!results) {
@@ -1221,7 +1280,7 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 	} else if ((strcmp(id, "tw") == 0) && (strcmp(type, "result") == 0)) {
 		purple_notify_info(tlen->gc->account, _("Public directory ..."),
 			_("Public directory information saved successfully!"), NULL);
-	} else if ((strcmp(id, "src") == 0) && (strcmp(type, "get"))) {
+	} else if (from && strcmp(from, "tuba") == 0 && strcmp(type, "result") == 0) {
 		xmlnode *node, *item;
 
 		node = xmlnode_get_child(xml, "query");
@@ -1230,7 +1289,11 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 
 		item = xmlnode_get_child(node, "item");
 
-		tlen_pubdir_user_info(tlen, item);
+		if (strcmp(id, "get_info") == 0) {
+			tlen_pubdir_user_info(tlen, item);
+		} else {
+			tlen_pubdir_search_info(tlen, item);
+		}
 	}
 
 	return 0;
@@ -1961,7 +2024,7 @@ static void
 tlen_get_info(PurpleConnection *gc, const char *name)
 {
 	TlenSession *tlen = gc->proto_data;	
-	char buf[256], *namecpy, *tmp;
+	char buf[256], header[256], *namecpy, *tmp;
 
 	namecpy = strdup(name);
 	tmp = strchr(namecpy, '@');
@@ -1969,7 +2032,9 @@ tlen_get_info(PurpleConnection *gc, const char *name)
 		*tmp = '\0';
 	}
 
-	snprintf(buf, sizeof(buf), "%s<i>%s</i>%s", TLEN_SEARCH_PUBDIR_HEADER, namecpy, TLEN_SEARCH_PUBDIR_FOOTER);
+	snprintf(header, sizeof(header), TLEN_SEARCH_PUBDIR_HEADER, "get_info");
+
+	snprintf(buf, sizeof(buf), "%s<i>%s</i>%s", header, namecpy, TLEN_SEARCH_PUBDIR_FOOTER);
 	tlen_send(tlen, buf);
 
 	free(namecpy);

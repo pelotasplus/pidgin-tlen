@@ -102,7 +102,7 @@
 #define TLEN_GET_PUBDIR_MYSELF	"<iq type='get' id='tr' to='tuba'><query xmlns='jabber:iq:register'></query></iq>"
 #define TLEN_SET_PUBDIR_HEADER  "<iq type='set' id='tw' to='tuba'><query xmlns='jabber:iq:register'>"
 #define TLEN_SET_PUBDIR_FOOTER  "</query></iq>"
-#define TLEN_SEARCH_PUBDIR_HEADER  "<iq type='get' id='src' to='tuba'><query xmlns='jabber:iq:search'>"
+#define TLEN_SEARCH_PUBDIR_HEADER  "<iq type='get' id='%s' to='tuba'><query xmlns='jabber:iq:search'>"
 #define TLEN_SEARCH_PUBDIR_FOOTER  "</query></iq>"
 
 #define UC_INVISIBLE_TEXT	"invisible"
