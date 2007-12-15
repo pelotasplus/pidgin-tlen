@@ -51,13 +51,13 @@ install:
 	done
 
 dist: all
-	rm -f gaim-tlen-${DATE}-win32.zip
-	rm -rf gaim-tlen-${DATE}-win32
-	mkdir gaim-tlen-${DATE}-win32
-	cp README* libtlen.dll gaim-tlen-${DATE}-win32
-	cp tlen.png gaim-tlen-${DATE}-win32/tlen.png
-	zip -9 -r gaim-tlen-${DATE}-win32.zip gaim-tlen-${DATE}-win32
-	rm -rf gaim-tlen-${DATE}-win32
+	rm -f pidgin-tlen-${DATE}-win32.zip
+	rm -rf pidgin-tlen-${DATE}-win32
+	mkdir pidgin-tlen-${DATE}-win32
+	cp README* libtlen.dll pidgin-tlen-${DATE}-win32
+	cp tlen_*.png pidgin-tlen-${DATE}-win32
+	zip -9 -r pidgin-tlen-${DATE}-win32.zip pidgin-tlen-${DATE}-win32
+	rm -rf pidgin-tlen-${DATE}-win32
 
 tags: *.c *.h
 	ctags *
