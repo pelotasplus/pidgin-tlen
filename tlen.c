@@ -1212,7 +1212,7 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 				continue;
 
 			/* Buddy name */
-			name = (char *)xmlnode_get_attrib(item, "name");
+			name = (char *) xmlnode_get_attrib(item, "name");
 			if (name)
 				name = tlen_decode_and_convert(name);
 			else
@@ -1240,25 +1240,29 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 				}
 			}
 
+			int add = 0;
+
 			b = purple_find_buddy(tlen->gc->account, jid);
 			if (b) {
-				purple_debug_info("tlen", "already have buddy %s as %p so let's remove it\n", jid, b);
-				purple_blist_remove_buddy(b);
+				purple_debug_info("tlen", "already have buddy %s as %p (b->proto_data=%p)\n",
+					jid, b, b->proto_data);
+			} else {
+				purple_debug_info("tlen", "adding new buddy %s\n", jid);
+
+				b = purple_buddy_new(tlen->gc->account, jid, name);
+				add = 1;
 			}
-
-			purple_debug(PURPLE_DEBUG_INFO, "tlen", "and add it once again this time from roster\n");
-
-			b = purple_buddy_new(tlen->gc->account, jid, name);
 
 			b->proto_data = g_new0(TlenBuddy, 1);
 			tb = b->proto_data;
 			tb->subscription = tlen_parse_subscription(subscription);
 
-			purple_blist_add_buddy(b, NULL, g, NULL);
+			if (add)
+				purple_blist_add_buddy(b, NULL, g, NULL);
+
+			purple_blist_alias_buddy(b, name);
 
 			g_free(name);
-
-			purple_blist_alias_buddy(b, b->alias);
 		}
 
 		tlen->roster_parsed = 1;
@@ -2051,8 +2055,7 @@ tlen_status_text(PurpleBuddy *b)
 
 	tb = (TlenBuddy *) b->proto_data;
 
-	// if (!tb || (tb && tb->subscription == SUB_NONE)) {
-	if (tb && tb->subscription == SUB_NONE) {
+	if (!tb || tb->subscription == SUB_NONE) {
 		text = g_strdup(_("Not Authorized"));
 	} else {
 		status = purple_presence_get_active_status(purple_buddy_get_presence(b));
