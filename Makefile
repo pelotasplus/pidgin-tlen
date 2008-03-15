@@ -6,7 +6,7 @@ CFLAGS+=`PKG_CONFIG_PATH=${LOCALBASE}/lib/pkgconfig pkg-config pidgin --cflags` 
 	-I${LOCALBASE}/include \
 	-fPIC \
 	-Wall
-DATE=	`date +%Y%m%d`
+DATE=	`grep TLEN_VERSION tlen.h | awk '{print $$3}' | sed -e 's/"//g'`
 
 .c.o:
 	$(CC) -c $< $(CFLAGS)
@@ -20,6 +20,7 @@ clean:
 	rm -f ${OBJS} libtlen.so *.core
 
 tags: *.c *.h
+	rm -f tags
 	ctags *
 
 install:
@@ -45,3 +46,5 @@ dist: clean
 	cp README* *.py chat.* wb.* auth.c tlen.* tlen_*.png Makefile* pidgin-tlen-${DATE}
 	tar zcvf pidgin-tlen-${DATE}.tar.gz pidgin-tlen-${DATE}
 	rm -rf pidgin-tlen-${DATE}
+
+.PHONY: tags
