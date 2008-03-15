@@ -669,8 +669,9 @@ static void
 tlen_pubdir_user_info(TlenSession *tlen, xmlnode *item)
 {
 	PurpleNotifyUserInfo *user_info;
+	PurpleBuddy *buddy;
 	int i;
-	char *decoded;
+	char *decoded, full_id[128];
 	xmlnode *node;
 
 	const char *jid = xmlnode_get_attrib(item, "jid");
@@ -716,13 +717,27 @@ tlen_pubdir_user_info(TlenSession *tlen, xmlnode *item)
 			g_free(decoded);
 	}
 
-	char full_jid[128];
 
-	snprintf(full_jid, sizeof(full_jid), "%s@tlen.pl", jid);
+	snprintf(full_id, sizeof(full_id), "%s@tlen.pl", jid);
 
-	purple_notify_userinfo(tlen->gc,  full_jid, user_info, NULL, NULL);
+        buddy = purple_find_buddy(purple_connection_get_account(tlen->gc), full_id);
+        if (NULL != buddy) {
+                PurpleStatus *status;
+                const char *msg;
+                char *text;
+
+                status = purple_presence_get_active_status(purple_buddy_get_presence(buddy));
+                msg = purple_status_get_attr_string(status, "message");
+
+                if (msg != NULL) {
+                        text = g_markup_escape_text(msg, -1);
+                        purple_notify_user_info_add_pair(user_info, _("Message"), text);
+                        g_free(text);
+                }
+	}
+
+	purple_notify_userinfo(tlen->gc,  full_id, user_info, NULL, NULL);
 	purple_notify_user_info_destroy(user_info);
-
 }
 
 static void

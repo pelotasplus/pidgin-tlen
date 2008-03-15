@@ -68,7 +68,7 @@
 #endif
 #endif
 
-#define TLEN_VERSION	"20071216"
+#define TLEN_VERSION	"20080315"
 
 #define SERVER_ADDRESS	"s1.tlen.pl"
 #define SERVER_PORT	443
