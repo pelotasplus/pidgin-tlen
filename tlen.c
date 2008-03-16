@@ -666,18 +666,13 @@ tlen_process_notification(TlenSession *tlen, xmlnode *xml)
 }
 
 static void
-tlen_pubdir_user_info(TlenSession *tlen, xmlnode *item)
+tlen_pubdir_user_info(TlenSession *tlen, const char *name, xmlnode *item)
 {
 	PurpleNotifyUserInfo *user_info;
 	PurpleBuddy *buddy;
 	int i;
-	char *decoded, full_id[128];
+	char *decoded;
 	xmlnode *node;
-
-	const char *jid = xmlnode_get_attrib(item, "jid");
-	
-	if (!jid)
-		return;
 
 	user_info = purple_notify_user_info_new();
 
@@ -717,10 +712,7 @@ tlen_pubdir_user_info(TlenSession *tlen, xmlnode *item)
 			g_free(decoded);
 	}
 
-
-	snprintf(full_id, sizeof(full_id), "%s@tlen.pl", jid);
-
-        buddy = purple_find_buddy(purple_connection_get_account(tlen->gc), full_id);
+        buddy = purple_find_buddy(purple_connection_get_account(tlen->gc), name);
         if (NULL != buddy) {
                 PurpleStatus *status;
                 const char *msg;
@@ -736,7 +728,7 @@ tlen_pubdir_user_info(TlenSession *tlen, xmlnode *item)
                 }
 	}
 
-	purple_notify_userinfo(tlen->gc,  full_id, user_info, NULL, NULL);
+	purple_notify_userinfo(tlen->gc,  name, user_info, NULL, NULL);
 	purple_notify_user_info_destroy(user_info);
 }
 
@@ -1308,10 +1300,10 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 
 		item = xmlnode_get_child(node, "item");
 
-		if (strcmp(id, "get_info") == 0) {
-			tlen_pubdir_user_info(tlen, item);
-		} else {
+		if (strcmp(id, "find_buddies") == 0) {
 			tlen_pubdir_search_info(tlen, item);
+		} else {
+			tlen_pubdir_user_info(tlen, id, item);
 		}
 	}
 
@@ -1978,12 +1970,15 @@ tlen_pubdir_find_buddies_cb(PurpleConnection *gc, PurpleRequestFields *fields)
 {
 	TlenSession *tlen = gc->proto_data;
 	GString *tubabuf;
-	char *q, buf[512];
+	char *q, buf[512], buf2[128];
 
 	tubabuf = tlen_pubdir_process_fields(gc, fields, TlenUIE_MODE_SEARCH);
 
 	q = g_string_free(tubabuf, FALSE);
-	snprintf(buf, sizeof(buf), "%s%s%s", TLEN_SEARCH_PUBDIR_HEADER, q, TLEN_SEARCH_PUBDIR_FOOTER);
+
+	snprintf(buf2, sizeof(buf2), TLEN_SEARCH_PUBDIR_HEADER, "find_buddies");
+
+	snprintf(buf, sizeof(buf), "%s%s%s", buf2, q, TLEN_SEARCH_PUBDIR_FOOTER);
 
 	tlen_send(tlen, buf);
 
@@ -2051,7 +2046,7 @@ tlen_get_info(PurpleConnection *gc, const char *name)
 		*tmp = '\0';
 	}
 
-	snprintf(header, sizeof(header), TLEN_SEARCH_PUBDIR_HEADER, "get_info");
+	snprintf(header, sizeof(header), TLEN_SEARCH_PUBDIR_HEADER, name);
 
 	snprintf(buf, sizeof(buf), "%s<i>%s</i>%s", header, namecpy, TLEN_SEARCH_PUBDIR_FOOTER);
 	tlen_send(tlen, buf);
