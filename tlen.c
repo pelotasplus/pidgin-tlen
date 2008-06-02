@@ -1487,7 +1487,7 @@ tlen_input_cb(gpointer data, gint source, PurpleInputCondition cond)
 		return;
 	}
 
-	len = read(tlen->fd, buf, sizeof(buf));
+	len = read(tlen->fd, buf, sizeof(buf) -1);
 	if (len < 0) {
 		purple_connection_error(gc, _("Read error"));
 		return;
