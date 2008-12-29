@@ -5,7 +5,7 @@ DESTDIR?=
 CFLAGS+=`PKG_CONFIG_PATH=${LOCALBASE}/lib/pkgconfig pkg-config pidgin --cflags` \
 	-I${LOCALBASE}/include \
 	-fPIC \
-	-Wall -Werror
+	-Wall
 DATE=	`grep TLEN_VERSION tlen.h | awk '{print $$3}' | sed -e 's/"//g'`
 
 .c.o:
