@@ -25,7 +25,7 @@
 /* id@~nick */
 #define TLEN_CHAT_JOIN_ROOM		"<p to='%s/%s'/>"
 #define TLEN_CHAT_JOIN_ANONYMOUS_ROOM	"<p to='%s'/>"
-#define TLEN_CHAT_SEND_ROOM_MESSAGE	"<m to='%s'><b c='000000' f='0' s='10'>%s</b></m>"
+#define TLEN_CHAT_SEND_ROOM_MESSAGE	"<m to='%s'><b n='1' s='10' f='0' c='000000'>%s</b></m>"
 #define TLEN_CHAT_ROOM_LEAVE		"<p to='%s'><s>unavailable</s></p>"
 #define TLEN_CHAT_PRIV_MESSAGE		"<m to='%s'><b>%s</b></m>"
 
@@ -1467,6 +1467,32 @@ tlen_chat_send_privmsg(TlenSession *s, const char *who, char *msg)
 	
 	g_free(who_copy);
 }
+
+/* Set room/conference/chat topic */
+void
+tlen_chat_set_chat_topic(PurpleConnection *gc, int id, const char *topic)
+{
+	TlenSession *s = gc->proto_data;
+	TlenChat *c;
+	char *t;
+	char buf[512];
+
+	c = find_chat_by_purple_id(s, id);
+	if (c == NULL) {
+		return;
+	}
+
+	if (topic == NULL || topic[0] == '\0') {
+		snprintf(buf, sizeof(buf), "<m to='%s'><subject></subject></m>", c->jid);
+	} else {
+		t = tlen_encode_and_convert(topic);
+		snprintf(buf, sizeof(buf), "<m to='%s'><subject>%s</subject></m>", c->jid, t);
+		g_free(t);
+	}
+
+	tlen_send(s, buf);
+}
+
 
 /* Sends a node that creates a room for us
 

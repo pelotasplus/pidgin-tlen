@@ -37,5 +37,6 @@ int tlen_chat_process_iq(TlenSession *tlen, xmlnode *xml, const char *type);
 int tlen_chat_process_p(TlenSession *tlen, xmlnode *xml);
 int tlen_chat_process_message(TlenSession *s, xmlnode *xml, const char *from);
 void tlen_chat_send_privmsg(TlenSession *s, const char *who, char *msg);
+void tlen_chat_set_chat_topic(PurpleConnection *gc, int id, const char *topic);
 
 #endif

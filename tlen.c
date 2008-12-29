@@ -2165,7 +2165,7 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,			/* set_buddy_icon */
 	NULL,			/* remove_group */
 	tlen_chat_get_cb_real_name, /* get_cb_real_name */
-	NULL,			/* set_chat_topic */
+	tlen_chat_set_chat_topic,   /* set_chat_topic */
 	NULL,			/* find_blist_chat */
 	tlen_roomlist_get_list,	/* roomlist_get_list */
 	tlen_roomlist_cancel,	/* roomlist_cancel */
