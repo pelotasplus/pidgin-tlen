@@ -1596,23 +1596,38 @@ tlen_login(PurpleAccount *account)
 static void
 tlen_close(PurpleConnection *gc)
 {
+	PurpleAccount *account;
+	PurpleStatus *status;
 	TlenSession *tlen = gc->proto_data;
-
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_close\n");
+	char *msg;
+	char buf[512];
 
 	if (tlen == NULL || tlen->fd < 0) {
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_close\n");
 		return;
 	}
 
-	tlen_send(tlen, "<presence type='unavailable'><show></show><status>Disconnected</status></presence>");
+	account = purple_connection_get_account(gc);
+	status = purple_account_get_active_status(account);
+	msg = (char *) purple_status_get_attr_string(status, "message");
+
+	if (!msg) {
+		msg = g_strdup("Disconnected");
+	} else {
+		msg = tlen_encode_and_convert(msg);
+	}	
+
+	g_snprintf(buf, sizeof(buf), "<presence type='unavailable'><status>%s</status></presence>", msg);
+
+	g_free(msg);
+
+	tlen_send(tlen, buf);
 	tlen_send(tlen, "</s>");
 
 	if (gc->inpa)
 		purple_input_remove(gc->inpa);
 
         close(tlen->fd);
-	tlen->fd = -1;
+
         g_free(tlen->server);
         g_free(tlen->user);
 
@@ -1620,8 +1635,6 @@ tlen_close(PurpleConnection *gc)
 	g_hash_table_destroy(tlen->room_create_hash);
 
         g_free(tlen);
-
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_close\n");
 }
 
 static int
