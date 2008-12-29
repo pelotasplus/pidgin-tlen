@@ -161,7 +161,7 @@ tlen_wb_send_draw_list(PurpleWhiteboard *wb, GList *draw_list)
 
 	g_string_append(message, "</data></wb></message>");
 
-	purple_debug_info("tlen_wb", "DATA: %.*s", message->len, message->str);
+	purple_debug_info("tlen_wb", "DATA: %.*s", (int) message->len, message->str);
 	purple_debug_info("tlen_wb", "<- tlen_wb_send_draw_list\n");
 
 	gc = purple_account_get_connection(wb->account);
