@@ -589,6 +589,11 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 		return 0;
 	}
 
+	/* b73 is a special account that is used to send out ads */
+	if (strcmp(from, "b73@tlen.pl") == 0) {
+		return 0;
+	}
+
 	body = xmlnode_get_child(xml, "body");
 	if (!body) {
 		/* This could be a whiteboard message */
