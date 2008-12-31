@@ -1,7 +1,7 @@
 CC=	gcc.exe
 PREFIX?=${LOCALBASE}
 GTK?=	../win32-dev/gtk_2_0
-GAIM?=	../pidgin-2.3.0
+GAIM?=	../pidgin-2.5.3
 CFLAGS+=-I$(GAIM)/libpurple \
 	-I$(GAIM)/libpurple/win32 \
 	-I. \
@@ -27,12 +27,12 @@ LDFLAGS=-L$(GTK)/lib \
 	-lintl \
 	-lpurple \
 	-lws2_32
-DATE=	`date +%Y%m%d`
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
 OBJS=	auth.o tlen.o chat.o wb.o
+VERSION=`cat tlen.h | grep VERSION | awk '{ print $$3 }' | sed -e 's,",,g'`
 
 all: ${OBJS}
 	$(CC) -shared $(OBJS) $(LDFLAGS) $(LIBS) \
@@ -50,14 +50,14 @@ install:
 			/cygdrive/c/Program\ Files/Pidgin/pixmaps/pidgin/protocols/$$i/tlen.png; \
 	done
 
-dist: all
-	rm -f pidgin-tlen-${DATE}-win32.zip
-	rm -rf pidgin-tlen-${DATE}-win32
-	mkdir pidgin-tlen-${DATE}-win32
-	cp README* libtlen.dll pidgin-tlen-${DATE}-win32
-	cp tlen_*.png pidgin-tlen-${DATE}-win32
-	zip -9 -r pidgin-tlen-${DATE}-win32.zip pidgin-tlen-${DATE}-win32
-	rm -rf pidgin-tlen-${DATE}-win32
+dist:
+	rm -f pidgin-tlen-${VERSION}-win32.zip
+	rm -rf pidgin-tlen-${VERSION}-win32
+	mkdir pidgin-tlen-${VERSION}-win32
+	cp README* libtlen.dll pidgin-tlen-${VERSION}-win32
+	cp tlen_*.png pidgin-tlen-${VERSION}-win32
+	zip -9 -r pidgin-tlen-${VERSION}-win32.zip pidgin-tlen-${VERSION}-win32
+	rm -rf pidgin-tlen-${VERSION}-win32
 
 tags: *.c *.h
 	ctags *
