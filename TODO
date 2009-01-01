@@ -14,3 +14,24 @@
 		</x>
 	</message>
 	<message from='newspub'><x><items node='o2/wiadomosci'/></x></message>
+
+* config
+
+<iq from='tcfg' to='pelotas' id='TcfgGetAfterLoggedIn' type='result'>
+        <query>
+                <mini-mail>
+                        <base>http://mini10.tlen.pl/</base>
+                        <msg method='GET'>?cmd=display%26id=^id^%26fld=^fld^</msg>
+                        <index method='GET'>?cmd=list%26fld=^fld^%26offset=^offset^</index>
+                        <login method='POST'>login.html</login>
+                        <logout method='GET'>logout.php</logout>
+                        <compose method='GET'>?cmd=compose%26to=^to^</compose>
+                        <avatar-get method='GET'>avatar/^login^/^type^?t=^token^</avatar-get>
+                        <avatar-upload method='POST'>taved/?cmd=save%26t=^token^%26access=^access^%26type=^type^</avatar-upload>
+                        <avatar-remove method='GET'>taved/?cmd=delete%26t=^token^%26type=^type^</avatar-remove>
+                </mini-mail>
+                <web-mail>
+                        <base>http://poczta.o2.pl/</base>
+                </web-mail>
+        </query>
+</iq>
