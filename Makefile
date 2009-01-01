@@ -43,7 +43,7 @@ dist: clean
 	rm -f pidgin-tlen-${DATE}.tar.gz
 	rm -rf pidgin-tlen-${DATE}
 	mkdir pidgin-tlen-${DATE}
-	cp README* *.py chat.* wb.* auth.c tlen.* tlen_*.png Makefile* pidgin-tlen-${DATE}
+	cp README* *.py chat.[ch] wb.[ch] auth.c tlen.[ch] tlen_*.png Makefile* pidgin-tlen-${DATE}
 	tar zcvf pidgin-tlen-${DATE}.tar.gz pidgin-tlen-${DATE}
 	rm -rf pidgin-tlen-${DATE}
 
