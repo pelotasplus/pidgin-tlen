@@ -288,7 +288,6 @@ tlen_parser_element_start(GMarkupParseContext *context,
 		// XXX what if `i' is not here?
 		for (i = 0; attrib_names[i]; i++) {
 			if (strcmp(attrib_names[i], "i") == 0) {
-				purple_debug(PURPLE_DEBUG_INFO, "tlen", "attrib_values[%d]=\"%s\"\n", i, attrib_values[i]);
 				strncpy(tlen->session_id, attrib_values[i], sizeof(tlen->session_id) - 1);
 				purple_debug(PURPLE_DEBUG_INFO, "tlen", "got session id=%s\n", tlen->session_id);
 
@@ -296,7 +295,6 @@ tlen_parser_element_start(GMarkupParseContext *context,
 				purple_connection_update_progress(tlen->gc, _("Authorizing"), 3, 4);
 
 				hash = tlen_hash(tlen->password, tlen->session_id);
-				purple_debug(PURPLE_DEBUG_INFO, "tlen", "hash=%s\n", hash);
 
 				/* Free the password, zero it first */
 				memset(tlen->password, 0, strlen(tlen->password));
@@ -365,20 +363,30 @@ tlen_list_emblems(PurpleBuddy *b)
 	return NULL;
 }
 
+/* xmlnode presence could be: 
+	<presence from='vxel@tlen.pl'>
+		<show>available</show>
+		<status>www.sfora.pl+/+czy+on+podgryza+mu+ucho?</status>
+		<avatar>
+			<a type='0' md5='b3686efaa815cf82912213db5d1be85e'/>
+		</avatar>
+	</presence>
+*/
 static void
 tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *presence)
 {
 	xmlnode *node;
 	char *show, *desc = NULL, *st;
+	const char *type = NULL, *md5 = NULL;
+	TlenBuddy *tb;
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_set_buddy_status: %s\n", buddy->name);
+	tb = buddy->proto_data;
 
 	show = (char *) xmlnode_get_attrib(presence, "type");
 	if (!show) {
 		node = xmlnode_get_child(presence, "show");
 		if (!node) {
 			purple_debug(PURPLE_DEBUG_INFO, "tlen", "presence change without show\n");
-			purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_set_buddy_status\n");
 			return;
 		}
 		show = xmlnode_get_data(node);
@@ -390,6 +398,21 @@ tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *prese
 		desc = xmlnode_get_data(node);
 		if (desc) {
 			desc = tlen_decode_and_convert(desc);
+		}
+	}
+
+	/* avatar info */
+	node = xmlnode_get_child(presence, "avatar");
+	if (node) {
+		node = xmlnode_get_child(node, "a");
+		if (node) {
+			type = xmlnode_get_attrib(node, "type");
+			md5 = xmlnode_get_attrib(node, "md5");
+
+			if (type && md5) {
+				strncpy(tb->md5, md5, sizeof(tb->md5) - 1);
+				strncpy(tb->type, type, sizeof(tb->type) - 1);
+			}
 		}
 	}
 
@@ -405,18 +428,13 @@ tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *prese
 		st = "dnd";
 	} else {
                 st = "offline";
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "unknown status: %s\n", show);
         }
-
-	purple_debug_info("tlen", "st=%s\n", st);
 
 	if (desc) {
 		purple_prpl_got_user_status(account, buddy->name, st, "message", desc, NULL);
 		g_free(desc);
 	} else
 		purple_prpl_got_user_status(account, buddy->name, st, NULL);
-
-	purple_debug_info("tlen", "<- tlen_set_buddy_status: desc=%s\n", desc ? desc : "NULL");
 }
 
 void
@@ -492,21 +510,15 @@ tlen_process_presence(TlenSession *tlen, xmlnode *xml)
 {
 	const char *from, *type;
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_process_presence\n");
-
 	from = xmlnode_get_attrib(xml, "from");
 	if (!from) {
 		purple_debug(PURPLE_DEBUG_INFO, "tlen", "<presence> without from\n");
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_process_presence\n");
 		return 0;
 	}
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "from=%s\n", from);
-
 	type = xmlnode_get_attrib(xml, "type");
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "type=%s\n", type ? type : "NONE");
 
-	/* Subscribtion -- someone has agreed to add us to its buddy list */
+	/* subscription -- someone has agreed to add us to his buddy list */
 	// <presence from='libtlendev@tlen.pl' type='subscribed'/>
 	if (type && (strcmp(type, "subscribed") == 0)) {
 		PurpleBuddy *b;
@@ -550,19 +562,13 @@ tlen_process_presence(TlenSession *tlen, xmlnode *xml)
 
                 g_free(msg);
 	/* Status change */
-	// <presence from='identyfikator@tlen.pl/t'><show>...</show><status>...</status></presence>
 	} else {
 		PurpleBuddy *buddy;
-		int size;
 
 		buddy = purple_find_buddy(tlen->gc->account, from);
 		if (!buddy) {
-			purple_debug(PURPLE_DEBUG_INFO, "tlen", "unknown buddy %s\n", from);
-			purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_process_presence\n");
 			return 0;
 		}
-
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "xml=%s\n", xmlnode_to_formatted_str(xml, &size));
 
 		tlen_set_buddy_status(tlen->gc->account, buddy, xml);
 	}
@@ -637,6 +643,24 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 	return 0;
 }
 
+static int
+tlen_process_avatar(TlenSession *tlen, xmlnode *xml)
+{
+	xmlnode *token;
+	char *msg;
+
+	token = xmlnode_get_child(xml, "token");
+	if (!token)
+		return 0;
+
+	msg = xmlnode_get_data(token);
+	if (!msg)
+		return 0;
+
+	strncpy(tlen->avatar_token, msg, sizeof(tlen->avatar_token) - 1);
+
+	return 0;
+}
 /* This can either be a typing notification or a chat message */
 static int
 tlen_process_notification(TlenSession *tlen, xmlnode *xml)
@@ -1175,8 +1199,9 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 		/* We are authorized */
 		if (strcmp(type, "result") == 0) {
 			purple_connection_set_state(tlen->gc, PURPLE_CONNECTED);
-			/* Getting user list */
+			/* Getting user list and config stuff*/
 			tlen_send(tlen, TLEN_GETROSTER_QUERY);
+			tlen_send(tlen, TLEN_GETCONFIG_QUERY);
 		/* Wrong usename or password */
 		} else if (strcmp(type, "error") == 0) {
 			purple_connection_error(tlen->gc, _("Wrong password or username"));
@@ -1340,6 +1365,8 @@ tlen_process_data(TlenSession *tlen, xmlnode *xml)
 		ret = tlen_email_notification(tlen, xml);
 	} else if (strcmp(xml->name, "p") == 0) {
 		ret = tlen_chat_process_p(tlen, xml);
+	} else if (strcmp(xml->name, "avatar") == 0) {
+		ret = tlen_process_avatar(tlen, xml);
 	}
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_process_data\n");
@@ -1515,8 +1542,6 @@ tlen_login_cb(gpointer data, gint source, const gchar *error_message)
 	PurpleConnection *gc = data;
 	TlenSession    *tlen = gc->proto_data;
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_login_cb\n");
-
 	if (source < 0) {
 		purple_connection_error(gc, _("Couldn't connect to host"));
 		return;
@@ -1531,8 +1556,6 @@ tlen_login_cb(gpointer data, gint source, const gchar *error_message)
 	tlen_send(tlen, TLEN_LOGIN_QUERY);
 
 	tlen->gc->inpa = purple_input_add(tlen->fd, PURPLE_INPUT_READ, tlen_input_cb, tlen->gc);
-
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_login_cb\n");
 }
 
 
@@ -1552,8 +1575,6 @@ tlen_login(PurpleAccount *account)
 	PurpleProxyConnectData *err;
 	char *domainname;
 
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_login\n");
-
 	gc = purple_account_get_connection(account);
 	gc->proto_data = g_new0(TlenSession, 1);
 
@@ -1568,7 +1589,7 @@ tlen_login(PurpleAccount *account)
 
 	domainname = strstr(tlen->user, "@tlen.pl");
 	if (domainname) {
-		purple_connection_error(gc, _("Invalid Tlen.pl ID (please use just username without \"@tlen.pl\")"));
+		purple_connection_error(gc, _("Invalid Tlen.pl ID (please use just user name without \"@tlen.pl\")"));
 		return;
 	}
 
@@ -1590,11 +1611,8 @@ tlen_login(PurpleAccount *account)
 	err = purple_proxy_connect(tlen->gc, account, SERVER_ADDRESS, SERVER_PORT, tlen_login_cb, gc);
 	if (!err || !purple_account_get_connection(account)) {
 		purple_connection_error(gc, _("Couldn't create socket"));
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_login\n");
 		return;
 	}
-
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_login\n");
 }
 
 
@@ -2214,7 +2232,7 @@ static PurplePluginInfo info =
 
 	N_("Tlen.pl Protocol Plugin"),               /* summary        */
 	N_("The Tlen.pl Protocol Plugin"),           /* description    */
-	"Aleksander Piotrowski <alek@mlodyinteligent.pl>",   /* author         */
+	"Aleksander Piotrowski <alek@nic.com.pl>",   /* author         */
 	"http://nic.com.pl/~alek/pidgin-tlen",         /* homepage       */
 
 	NULL,                                        /* load           */

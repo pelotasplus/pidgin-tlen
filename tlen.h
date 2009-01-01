@@ -83,6 +83,7 @@
 				"<username>%s</username><digest>%s</digest><resource>t</resource>" \
 				"</query></iq>"
 #define TLEN_GETROSTER_QUERY	"<iq type='get' id='GetRoster'><query xmlns='jabber:iq:roster'></query></iq>"
+#define TLEN_GETCONFIG_QUERY	"<iq to='tcfg' type='get' id='TcfgGetAfterLoggedIn'></iq>"
 #define TLEN_KEEPALIVE		"  \t  "
 #define TLEN_MESSAGE		"<message to='%s' type='chat'><body>%s</body></message>"
 #define TLEN_PRESENCE_STATE	"<presence><show>%s</show><status>%s</status></presence>"
@@ -136,6 +137,8 @@
 
 typedef struct {
 	int   subscription;	/* Subscription status */
+	char	md5[33];	/* avatar md5 */
+	char	type[2];	/* avatar type */
 } TlenBuddy;
 
 typedef struct {
@@ -143,6 +146,7 @@ typedef struct {
 	gint                 fd;
 
 	char                 session_id[100];	/* Session ID used in many other places */
+	char                 avatar_token[64];	/* token used to access avatar web interface */
 	GMarkupParseContext *context;		/* Parser context used to parse protocol traffic */
 	xmlnode             *xml;		/* XML object created from data sent by server */
 	int roster_parsed;			/* Was roster already parsed?  If not, then we ignore add_buddy calls */
@@ -154,7 +158,7 @@ typedef struct {
 	char                *password;
 
 	/* Chat stuff */
-	PurpleRoomlist        *roomlist;
+	PurpleRoomlist      *roomlist;
 	GHashTable          *room_hash;		/* Temporary hashtable for the roomlist */
 	GHashTable          *chat_hash;		/* This is where we keep open chat rooms */
 	GHashTable          *room_create_hash;	/* Room creation request id hash */
