@@ -379,6 +379,7 @@ tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *prese
 	char *show, *desc = NULL, *st;
 	const char *type = NULL, *md5 = NULL;
 	TlenBuddy *tb;
+	int free_show = 0;
 
 	tb = buddy->proto_data;
 
@@ -390,6 +391,7 @@ tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *prese
 			return;
 		}
 		show = xmlnode_get_data(node);
+		free_show = 1;
 	}
 
 	/* User has set status */
@@ -397,7 +399,10 @@ tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *prese
 	if (node) {
 		desc = xmlnode_get_data(node);
 		if (desc) {
-			desc = tlen_decode_and_convert(desc);
+			char *tmp;
+			tmp = tlen_decode_and_convert(desc);
+			g_free(desc);
+			desc = tmp;
 		}
 	}
 
@@ -429,6 +434,9 @@ tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *prese
 	} else {
                 st = "offline";
         }
+
+	if (free_show)
+		g_free(show);
 
 	if (desc) {
 		purple_prpl_got_user_status(account, buddy->name, st, "message", desc, NULL);
@@ -622,6 +630,7 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 	}
 
 	converted = tlen_decode_and_convert(msg);
+	g_free(msg);
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "msg=%s\n", converted);
 	msg = g_markup_escape_text(converted, -1);
 	g_free(converted);
@@ -657,7 +666,10 @@ tlen_process_avatar(TlenSession *tlen, xmlnode *xml)
 	if (!msg)
 		return 0;
 
-	strncpy(tlen->avatar_token, msg, sizeof(tlen->avatar_token) - 1);
+	if (tlen->avatar_token)
+		g_free(tlen->avatar_token);
+
+	tlen->avatar_token = msg;
 
 	return 0;
 }
@@ -702,6 +714,7 @@ tlen_pubdir_user_info(TlenSession *tlen, const char *name, xmlnode *item)
 	int i;
 	char *decoded;
 	xmlnode *node;
+	char *tmp;
 
 	user_info = purple_notify_user_info_new();
 
@@ -719,26 +732,30 @@ tlen_pubdir_user_info(TlenSession *tlen, const char *name, xmlnode *item)
 
 		decoded = NULL;
 		if (tlen_user_template[i].format == TlenUIE_STR) {
-			decoded = tlen_decode_and_convert(xmlnode_get_data(node));
+			tmp = xmlnode_get_data(node);
+			decoded = tlen_decode_and_convert(tmp);
+			g_free(tmp);
 		}
 
 		purple_debug_info("tlen", "%s -> %s\n", tlen_user_template[i].tag,
 			decoded ? decoded : "NULL"); 
 
 		if (strcmp(tlen_user_template[i].tag, "s") == 0) {
-			int gender = atoi(xmlnode_get_data(node));
+			tmp = xmlnode_get_data(node);
+			int gender = atoi(tmp);
+			g_free(tmp);
+
 			if (gender < 0 || gender >= tlen_gender_list_size)
 				gender = 0;
 
 			purple_notify_user_info_add_pair(user_info, tlen_user_template[i].desc,
 				g_strdup(_(tlen_gender_list[gender])));
+
+			g_free(decoded);
 		} else {
 			purple_notify_user_info_add_pair(user_info, tlen_user_template[i].desc,
-				decoded ? decoded : g_strdup(xmlnode_get_data(node)));
+				decoded ? decoded : xmlnode_get_data(node));
 		}
-
-		if (decoded)
-			g_free(decoded);
 	}
 
         buddy = purple_find_buddy(purple_connection_get_account(tlen->gc), name);
@@ -769,7 +786,7 @@ tlen_pubdir_search_info(TlenSession *tlen, xmlnode *item)
 	int i;
 	GList *row;
 	xmlnode *node;
-	char *decoded;
+	char *decoded, *tmp;
 
 	purple_debug_info("tlen", "-> tlen_pubdir_search_info\n");
 
@@ -810,20 +827,24 @@ tlen_pubdir_search_info(TlenSession *tlen, xmlnode *item)
 	
 			decoded = NULL;
 			if (tlen_user_template[i].format == TlenUIE_STR) {
-				decoded = tlen_decode_and_convert(xmlnode_get_data(node));
+				tmp = xmlnode_get_data(node);
+				decoded = tlen_decode_and_convert(tmp);
+				g_free(tmp);
 			}
 
 			purple_debug_info("tlen", "%s -> %s\n", tlen_user_template[i].tag,
 				decoded ? decoded : "NULL"); 
 
 			if (strcmp(tlen_user_template[i].tag, "s") == 0) {
-				int gender = atoi(xmlnode_get_data(node));
+				tmp = xmlnode_get_data(node);
+				int gender = atoi(tmp);
+				g_free(tmp);
 				if (gender < 0 || gender >= tlen_gender_list_size)
 					gender = 0;
 
 				row = g_list_append(row, g_strdup(_(tlen_gender_list[gender])));
 			} else {
-				row = g_list_append(row, decoded ? decoded : g_strdup(xmlnode_get_data(node)));
+				row = g_list_append(row, decoded ? decoded : xmlnode_get_data(node));
 			}
 		}
 
@@ -1012,6 +1033,7 @@ tlen_pubdir_edit_user_info(TlenSession *tlen, xmlnode *item)
 					intval = atoi(nodeval);
 					decoded = tlen_decode_and_convert(nodeval);
 					purple_debug_info("tlen", "%s == %s (%d)\n", tlen_user_template[i].desc, nodeval, intval);
+					g_free(nodeval);
 				}
 			}
 		}
@@ -1258,8 +1280,10 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 			/* Group that buddy belongs to */
 			groupxml = xmlnode_get_child(item, "group");
 			if (groupxml != NULL) {
-				group = (char *) xmlnode_get_data(groupxml);
-				group = tlen_decode_and_convert(group);
+				char *tmp;
+				tmp = (char *) xmlnode_get_data(groupxml);
+				group = tlen_decode_and_convert(tmp);
+				g_free(tmp);
 			} else {
 				group = NULL;
 			}

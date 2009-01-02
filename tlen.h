@@ -146,7 +146,7 @@ typedef struct {
 	gint                 fd;
 
 	char                 session_id[100];	/* Session ID used in many other places */
-	char                 avatar_token[64];	/* token used to access avatar web interface */
+	char                *avatar_token;	/* token used to access avatar web interface */
 	GMarkupParseContext *context;		/* Parser context used to parse protocol traffic */
 	xmlnode             *xml;		/* XML object created from data sent by server */
 	int roster_parsed;			/* Was roster already parsed?  If not, then we ignore add_buddy calls */
