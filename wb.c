@@ -257,6 +257,7 @@ tlen_wb_process_data(PurpleWhiteboard *wb, xmlnode *data)
 	dx = strtol(p, &p, 10);
 	if (*p == '\0') {
 		purple_debug_info("tlen_wb", "invalid data\n");
+		g_free(d);
 		return;
 	}
 
@@ -265,6 +266,7 @@ tlen_wb_process_data(PurpleWhiteboard *wb, xmlnode *data)
 	dy = strtol(p, &p, 10);
 	if (*p == '\0') {
 		purple_debug_info("tlen_wb", "done\n");
+		g_free(d);
 		return;
 	}
 
@@ -301,6 +303,8 @@ tlen_wb_process_data(PurpleWhiteboard *wb, xmlnode *data)
 		p++;
 
 	}
+
+	g_free(d);
 }
 
 void
