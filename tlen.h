@@ -137,8 +137,8 @@
 
 typedef struct {
 	int   subscription;	/* Subscription status */
-	char	md5[33];	/* avatar md5 */
-	char	type[2];	/* avatar type */
+	char  md5[33];		/* avatar md5 */
+	char  type[2];		/* avatar type */
 } TlenBuddy;
 
 typedef struct {
