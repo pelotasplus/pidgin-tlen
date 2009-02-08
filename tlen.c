@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
+ * Copyright (c) 2005-2009 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,6 +16,7 @@
 
 #include "tlen.h"
 #include "chat.h"
+#include "avatar.h"
 #include "wb.h"
 
 static PurplePlugin *my_protocol = NULL;
@@ -373,7 +374,7 @@ tlen_list_emblems(PurpleBuddy *b)
 	</presence>
 */
 static void
-tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *presence)
+tlen_set_buddy_status(TlenSession *tlen, PurpleAccount *account, PurpleBuddy *buddy, xmlnode *presence)
 {
 	xmlnode *node;
 	char *show, *desc = NULL, *st;
@@ -413,13 +414,9 @@ tlen_set_buddy_status(PurpleAccount *account, PurpleBuddy *buddy, xmlnode *prese
 		if (node) {
 			type = xmlnode_get_attrib(node, "type");
 			md5 = xmlnode_get_attrib(node, "md5");
-
-			if (type && md5) {
-				strncpy(tb->md5, md5, sizeof(tb->md5) - 1);
-				strncpy(tb->type, type, sizeof(tb->type) - 1);
-			}
 		}
 	}
+	tlen_avatar_get(tlen, buddy, md5, type);
 
 	if (strcmp(show, UC_AVAILABLE_TEXT) == 0) {
 		st = "available";
@@ -578,7 +575,7 @@ tlen_process_presence(TlenSession *tlen, xmlnode *xml)
 			return 0;
 		}
 
-		tlen_set_buddy_status(tlen->gc->account, buddy, xml);
+		tlen_set_buddy_status(tlen, tlen->gc->account, buddy, xml);
 	}
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_process_presence\n");
@@ -652,27 +649,6 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 	return 0;
 }
 
-static int
-tlen_process_avatar(TlenSession *tlen, xmlnode *xml)
-{
-	xmlnode *token;
-	char *msg;
-
-	token = xmlnode_get_child(xml, "token");
-	if (!token)
-		return 0;
-
-	msg = xmlnode_get_data(token);
-	if (!msg)
-		return 0;
-
-	if (tlen->avatar_token)
-		g_free(tlen->avatar_token);
-
-	tlen->avatar_token = msg;
-
-	return 0;
-}
 /* This can either be a typing notification or a chat message */
 static int
 tlen_process_notification(TlenSession *tlen, xmlnode *xml)
@@ -1390,7 +1366,7 @@ tlen_process_data(TlenSession *tlen, xmlnode *xml)
 	} else if (strcmp(xml->name, "p") == 0) {
 		ret = tlen_chat_process_p(tlen, xml);
 	} else if (strcmp(xml->name, "avatar") == 0) {
-		ret = tlen_process_avatar(tlen, xml);
+		ret = tlen_avatar_process(tlen, xml);
 	}
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_process_data\n");
@@ -1680,6 +1656,8 @@ tlen_close(PurpleConnection *gc)
 
 	g_hash_table_destroy(tlen->chat_hash);
 	g_hash_table_destroy(tlen->room_create_hash);
+
+	tlen_avatar_close(tlen);
 
         g_free(tlen);
 }

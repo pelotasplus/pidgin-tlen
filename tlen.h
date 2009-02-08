@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005,2006 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
+ * Copyright (c) 2005-2009 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -43,6 +43,7 @@
 #include <account.h>
 #include <debug.h>
 #include <request.h>
+#include <cipher.h>
 
 #ifdef ENABLE_NLS
 #  include <locale.h>
@@ -68,7 +69,7 @@
 #endif
 #endif
 
-#define TLEN_VERSION	"20081229"
+#define TLEN_VERSION	"20090209"
 
 #define SERVER_ADDRESS	"s1.tlen.pl"
 #define SERVER_PORT	443
@@ -137,8 +138,6 @@
 
 typedef struct {
 	int   subscription;	/* Subscription status */
-	char  md5[33];		/* avatar md5 */
-	char  type[2];		/* avatar type */
 } TlenBuddy;
 
 typedef struct {
