@@ -1,4 +1,4 @@
-Copyright 2005-2007 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
+Copyright 2005-2009 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
 
 This is Tlen.pl protocol plugin for Pidgin.  For more information, the latest
 version, tips'n'tricks, etc. check the official website:
@@ -19,11 +19,7 @@ What is supported:
  * Public directory (setting info about yourselves, searching for buddies)
  * Whiteboard sessions (this is not a part of the original protocol, works
    between gaim clients only)
-
-To install Tlen.pl emotes you should copy all the files (ie. gifs and emo.xml)
-from your favourite emote set to a directory named 'emote_set' in the source
-directory then invoke 'make emotes'. Almost no error checking is performed,
-expect trouble.
+ * avatars (only buddies' avatars; user avatar is not yet supported)
 
 Installation instructions for Windows users:
 
