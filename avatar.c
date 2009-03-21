@@ -136,14 +136,17 @@ tlen_avatar_process_resp(TlenSession *tlen, char *buf, int len)
 {
 	purple_debug_info("tlen_avatar", "buf(%d)='%s'\n", len, buf);
 
+#if 0
 	int fp = open("/var/tmp/avatar", O_CREAT|O_WRONLY|O_TRUNC, 0600);
 	if (fp) {
 		write(fp, buf, len);
 		close(fp);
 	}
+#endif
 
 	if (strncmp(buf, "HTTP/1.0 200 OK", strlen("HTTP/1.0 200 OK")) != 0) {
 		purple_debug_info("tlen_avatar", "not 200 OK resp\n");
+		queue = g_list_remove(queue, current_av);
 		return -1;
 	}
 
