@@ -912,7 +912,7 @@ reject_invitation(struct invitation_data *d)
 static void
 tlen_chat_process_x(TlenSession *s, TlenChat *c, xmlnode *x, const char *roomid)
 {
-	const char *nick, *a, *rdata;
+	const char *nick, *a, *rdata = NULL;
 	char *decoded, *tmp;
 	xmlnode *i, *r;
 	struct invitation_data *inv_data;
@@ -1110,7 +1110,7 @@ tlen_chat_process_p(TlenSession *tlen, xmlnode *xml)
 	/* MESSY MESSY MESSY */
 	const char *f, *z, *a, *l, *e, *tp, *r;
 	PurpleConvChatBuddyFlags flags;
-	char *nick, *id, *presence;
+	char *nick, *id, *presence = NULL;
 	char *decoded_nick;
 	char *decoded_login;
 	char *tmp, *decoded, *msg1, *msg2, *msg3;	/* message parts */
