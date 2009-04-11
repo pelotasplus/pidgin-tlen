@@ -41,6 +41,7 @@
 #include <version.h>
 #include <xmlnode.h>
 #include <account.h>
+#include <accountopt.h>
 #include <debug.h>
 #include <request.h>
 #include <cipher.h>

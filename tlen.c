@@ -2198,8 +2198,17 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,			/* can_receive_file */
 	NULL,			/* send_file */
 	NULL,			/* new xfer */
-        tlen_offline_message,	/* offline_message */
-        &tlen_wb_ops		/* whiteboard_prpl_ops */
+	tlen_offline_message,	/* offline_message */
+	NULL,			/* whiteboard_prpl_ops */
+	NULL,                   /* send_raw */
+	NULL,                   /* roomlist_room_serialize */
+
+	/* padding */
+	NULL,			/* unregister_user */
+	NULL,			/* send_attention */
+	NULL,			/* get_attention_types */
+	sizeof(PurplePluginProtocolInfo),       /* struct_size */
+	NULL,			/* get_account_text_table */
 };
 
 static GList *
@@ -2244,12 +2253,23 @@ static PurplePluginInfo info =
 	NULL,                                        /* ui_info        */
 	&prpl_info,                                  /* extra_info     */
 	NULL,                                        /* prefs_info     */
-	tlen_actions                                 /* actions        */
+	tlen_actions,                                /* actions        */
+
+	/* padding */
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 static void
 init_plugin(PurplePlugin *plugin)
 {
+	PurpleAccountOption *option;
+
+	option = purple_account_option_int_new(_("Pidgin bug workaround"), "pidgin-bug-workaround", 0);
+	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
+
 	my_protocol = plugin;
 }
 
