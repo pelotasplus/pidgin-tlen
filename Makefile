@@ -21,7 +21,8 @@ clean:
 
 tags: *.c *.h
 	rm -f tags
-	ctags *
+	ectags .
+	ectags -Ra /usr/obj/ports/pidgin-2.5.5/pidgin-2.5.5/
 
 install:
 	install -d -o root -g wheel ${DESTDIR}${LOCALBASE}/lib/purple-2/
