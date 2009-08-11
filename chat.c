@@ -574,7 +574,7 @@ tlen_chat_process_subject(TlenChat *c, xmlnode *subject, char *nick)
 	g_free(decoded_data);
 	g_free(decoded_nick);
 	g_free(msg);
-	g_free(data);
+	g_free((char *) data);
 }
 
 /*
@@ -706,7 +706,7 @@ out:
 	free(decoded_nick);
 	free(decoded_msg);
 	free(escaped_msg);
-	free(msg);
+	free((char *) msg);
 
 	return 0;
 }
@@ -1034,7 +1034,7 @@ tlen_chat_process_x(TlenSession *s, TlenChat *c, xmlnode *x, const char *roomid)
 			s->gc->account, NULL, NULL, inv_data, G_CALLBACK(accept_invitation), G_CALLBACK(reject_invitation));
 
 		g_free(decoded);
-		g_free(rdata);
+		g_free((char *)rdata);
 	}
 }
 
