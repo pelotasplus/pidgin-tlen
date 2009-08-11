@@ -1,7 +1,7 @@
 CC=	gcc.exe
 PREFIX?=${LOCALBASE}
 GTK?=	../win32-dev/gtk_2_0
-GAIM?=	../pidgin-2.5.3
+GAIM?=	../pidgin-2.5.8
 CFLAGS+=-I$(GAIM)/libpurple \
 	-I$(GAIM)/libpurple/win32 \
 	-I. \
@@ -31,7 +31,7 @@ LDFLAGS=-L$(GTK)/lib \
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-OBJS=	auth.o tlen.o chat.o wb.o
+OBJS=	auth.o tlen.o chat.o wb.o avatar.o
 VERSION=`cat tlen.h | grep VERSION | awk '{ print $$3 }' | sed -e 's,",,g'`
 
 all: ${OBJS}
