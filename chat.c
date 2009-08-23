@@ -591,7 +591,7 @@ tlen_chat_process_subject(TlenChat *c, xmlnode *subject, char *nick)
 int
 tlen_chat_process_message(TlenSession *s, xmlnode *xml, const char *from)
 {
-	const char *msg, *stamp, *tp;
+	const char *msg = NULL, *stamp, *tp;
 	xmlnode *body;
 	char *id, *nick;
 	char *decoded_msg, *decoded_nick, *escaped_msg;
