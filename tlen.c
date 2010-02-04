@@ -21,7 +21,7 @@
 
 static PurplePlugin *my_protocol = NULL;
 
-char *tlen_gender_list[] = {
+const char *tlen_gender_list[] = {
 	"Male or female",
 	"Male",
 	"Female",
@@ -2096,18 +2096,28 @@ tlen_get_info(PurpleConnection *gc, const char *name)
 {
 	TlenSession *tlen = gc->proto_data;	
 	char buf[256], header[256], *namecpy, *tmp;
+	int ret;
 
 	namecpy = strdup(name);
+	if (!namecpy)
+		return;
+
 	tmp = strchr(namecpy, '@');
 	if (tmp) {
 		*tmp = '\0';
 	}
 
-	snprintf(header, sizeof(header), TLEN_SEARCH_PUBDIR_HEADER, name);
+	ret = snprintf(header, sizeof(header), TLEN_SEARCH_PUBDIR_HEADER, name);
+	if (ret < 0 || ret >= sizeof(header))
+		goto end;
 
-	snprintf(buf, sizeof(buf), "%s<i>%s</i>%s", header, namecpy, TLEN_SEARCH_PUBDIR_FOOTER);
+	ret = snprintf(buf, sizeof(buf), "%s<i>%s</i>%s", header, namecpy, TLEN_SEARCH_PUBDIR_FOOTER);
+	if (ret < 0 || ret >= sizeof(buf))
+		goto end;
+	
 	tlen_send(tlen, buf);
 
+end:
 	free(namecpy);
 }
 
