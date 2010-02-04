@@ -1319,6 +1319,8 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 			purple_blist_alias_buddy(b, name);
 
 			g_free(name);
+
+			purple_prpl_got_user_status(tlen->gc->account, b->name, "offline", NULL);
 		}
 
 		tlen->roster_parsed = 1;
