@@ -94,10 +94,7 @@ tlen_avatar_process_queue(TlenSession *tlen)
 
 	g_free(login);
 
-	purple_debug_info("tlen_avatar", "get_buf='%s'", get_buf);
-
-	ssize_t res = write(fd, get_buf, strlen(get_buf));
-	purple_debug_info("tlen_avatar", "write(%zd): %d %s\n", res, errno, strerror(errno));
+	write(fd, get_buf, strlen(get_buf));
 }
 
 static void
@@ -144,7 +141,7 @@ tlen_avatar_process_resp(TlenSession *tlen, char *buf, int len)
 	}
 #endif
 
-	if (strncmp(buf, "HTTP/1.0 200 OK", strlen("HTTP/1.0 200 OK")) != 0) {
+	if (strncmp(buf, "HTTP/1.0 200 O", strlen("HTTP/1.0 200 O")) != 0) {
 		purple_debug_info("tlen_avatar", "not 200 OK resp\n");
 		queue = g_list_remove(queue, current_av);
 		return -1;
