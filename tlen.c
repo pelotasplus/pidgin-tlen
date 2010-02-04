@@ -586,7 +586,7 @@ tlen_process_presence(TlenSession *tlen, xmlnode *xml)
 static int
 tlen_process_message(TlenSession *tlen, xmlnode *xml)
 {
-	char *msg, *converted;
+	char *msg, *converted, *tmp;
 	const char *from, *stamp;
 	xmlnode *body, *x, *wb;
 	time_t sent = 0;
@@ -604,6 +604,15 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 	if (strcmp(from, "b73@tlen.pl") == 0) {
 		return 0;
 	}
+
+	/* offline message have from in the following form:
+	 *   user@domain/resource
+	 * let's strip part after / so that offline msgs match
+	 * our buddies from roster.
+	 */
+	tmp = strchr(from, '/');
+	if (tmp != NULL)
+		*tmp = '\0';
 
 	body = xmlnode_get_child(xml, "body");
 	if (!body) {
@@ -632,16 +641,22 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 	msg = g_markup_escape_text(converted, -1);
 	g_free(converted);
 
+
+	sent = time(NULL);
+
+	purple_debug_info("tlen", "sent %ld\n", sent);
+
 	/* timestamp of an offline msg  */
 	x = xmlnode_get_child(xml, "x");
 	if (x) {
 		stamp = xmlnode_get_attrib(x, "stamp");
 		if (stamp) {
 			sent = purple_str_to_time(stamp, TRUE, NULL, NULL, NULL);
+			purple_debug_info("tlen", "offline sent %ld\n", sent);
 		}
 	}
 
-	serv_got_im(tlen->gc, from, msg, 0, sent == 0 ? time(NULL) : sent);
+	serv_got_im(tlen->gc, from, msg, 0, sent);
 
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_process_message\n");
@@ -1091,7 +1106,7 @@ tlen_set_away(PurpleAccount *account, PurpleStatus *status)
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_set_away\n");
 
-        if (!purple_status_is_active(status)) {
+        if (! purple_status_is_active(status)) {
 		purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_set_away\n");
                 return;
 	}
@@ -1105,13 +1120,16 @@ tlen_set_away(PurpleAccount *account, PurpleStatus *status)
  
         msg = (char *) purple_status_get_attr_string(status, "message");
 	if (msg) {
+		purple_debug_info("tlen", "orig msg %s\n", msg);
+
 		msg2 = fromutf(msg);
 		if (msg2 == NULL) {
-			purple_debug(PURPLE_DEBUG_INFO, "tlen", "tlen_set_away: can't convert msg\n");
+			purple_debug(PURPLE_DEBUG_INFO, "tlen", "can't convert msg\n");
 			msg2 = g_strdup(msg);
 		}
 
-		msg = purple_unescape_html(msg2);
+
+		msg = purple_markup_strip_html(msg2); //purple_unescape_html(msg2);
 		g_free(msg2);
 
 		purple_debug(PURPLE_DEBUG_INFO, "tlen", "unescaped=%s\n", msg);
@@ -1122,6 +1140,7 @@ tlen_set_away(PurpleAccount *account, PurpleStatus *status)
 			msg2 = g_strdup(msg);
 		}
 		g_free(msg);
+
 		purple_debug(PURPLE_DEBUG_INFO, "tlen", "encoded=%s\n", msg2);
 	}
 
@@ -2209,6 +2228,8 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,			/* get_attention_types */
 	sizeof(PurplePluginProtocolInfo),       /* struct_size */
 	NULL,			/* get_account_text_table */
+	NULL,			/* initiate_media */
+	NULL			/* can_do_media */
 };
 
 static GList *
@@ -2265,10 +2286,12 @@ static PurplePluginInfo info =
 static void
 init_plugin(PurplePlugin *plugin)
 {
+#if 0
 	PurpleAccountOption *option;
 
 	option = purple_account_option_int_new(_("Pidgin bug workaround"), "pidgin-bug-workaround", 0);
 	prpl_info.protocol_options = g_list_append(prpl_info.protocol_options, option);
+#endif
 
 	my_protocol = plugin;
 }
