@@ -1,11 +1,11 @@
-Copyright 2005-2009 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
+Copyright 2005-2010 Aleksander Piotrowski <aleksander.piotrowski@nic.com.pl>
 
 This is Tlen.pl protocol plugin for Pidgin.  For more information, the latest
 version, tips'n'tricks, etc. check the official website:
 
 	http://nic.com.pl/~alek/pidgin-tlen/
 
-This plugin is developed (and tested) on OpenBSD for Pidgin 2.5.9
+This plugin is developed (and tested) on OpenBSD for Pidgin 2.6.5
 Most probably it only works with this particular version of Pidgin.
 Windows version was complied on Windows XP box.
 
