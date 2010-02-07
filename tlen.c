@@ -644,15 +644,12 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 
 	sent = time(NULL);
 
-	purple_debug_info("tlen", "sent %ld\n", sent);
-
 	/* timestamp of an offline msg  */
 	x = xmlnode_get_child(xml, "x");
 	if (x) {
 		stamp = xmlnode_get_attrib(x, "stamp");
 		if (stamp) {
 			sent = purple_str_to_time(stamp, TRUE, NULL, NULL, NULL);
-			purple_debug_info("tlen", "offline sent %ld\n", sent);
 		}
 	}
 
