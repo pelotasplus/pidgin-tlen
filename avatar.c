@@ -87,12 +87,20 @@ tlen_avatar_process_queue(TlenSession *tlen)
 
 	// <avatar-get method='GET'>avatar/^login^/^type^?t=^token^</avatar-get>
 	char get_buf[512];
-	snprintf(get_buf, sizeof(get_buf),
-"GET /avatar/%s/%s?t=%s HTTP/1.1\r\n"
-"Host: mini10.tlen.pl\r\n\r\n",
-	login, current_av->type, tlen->avatar_token);
+	int ret;
+
+	ret = snprintf(get_buf, sizeof(get_buf),
+		"GET /avatar/%s/%s?t=%s HTTP/1.1\r\n"
+		"Host: mini10.tlen.pl\r\n\r\n",
+		login, current_av->type, tlen->avatar_token);
 
 	g_free(login);
+
+	if (ret < 0 || ret >= sizeof(get_buf))
+		return;		
+
+
+	purple_debug_info("tlen_avatar", "%s", get_buf);
 
 	write(fd, get_buf, strlen(get_buf));
 }
@@ -209,7 +217,7 @@ tlen_avatar_read_cb(gpointer data, gint source, PurpleInputCondition cond)
         if (len < 0 && errno == EAGAIN)
                 return;
 	if (len <= 0) {
-                purple_debug_error("tlen_avatar", "read(%zd): %d %s\n", len, errno, g_strerror(errno));
+                purple_debug_error("tlen_avatar", "read(%d): %d %s\n", len, errno, g_strerror(errno));
 		tlen_avatar_disconnect(tlen);
                 return;
         }
@@ -308,6 +316,9 @@ void
 tlen_avatar_get(TlenSession *tlen, PurpleBuddy *buddy, const char *md5, const char *type)
 {
 	const char *current_checksum = purple_buddy_icons_get_checksum_for_user(buddy);
+
+	//purple_debug_info("tlen_avatar", "current checksum %s buddy %s\n",
+	//	current_checksum, buddy->name);
 
 	/* remove avatar if there is no md5/type in presence */
 	if (!md5 || !type) {
