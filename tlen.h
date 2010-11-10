@@ -60,16 +60,6 @@
 #  define _(x) ((char *)x)
 #endif
 
-#if 0
-#ifndef G_GNUC_NULL_TERMINATED
-#       if     __GNUC__ >= 4
-#               define G_GNUC_NULL_TERMINATED __attribute__((__sentinel__))
-#       else
-#               define G_GNUC_NULL_TERMINATED
-#       endif
-#endif
-#endif
-
 #define TLEN_VERSION	"20100205"
 
 #define SERVER_ADDRESS	"s1.tlen.pl"
@@ -82,7 +72,7 @@
 
 #define TLEN_LOGIN_QUERY	"<s v='7'>"
 #define TLEN_AUTH_QUERY		"<iq type='set' id='%s'><query xmlns='jabber:iq:auth'>" \
-				"<username>%s</username><digest>%s</digest><resource>t</resource>" \
+				"<username>%s</username><host>tlen.pl</host><digest>%s</digest><resource>t</resource>" \
 				"</query></iq>"
 #define TLEN_GETROSTER_QUERY	"<iq type='get' id='GetRoster'><query xmlns='jabber:iq:roster'></query></iq>"
 #define TLEN_GETCONFIG_QUERY	"<iq to='tcfg' type='get' id='TcfgGetAfterLoggedIn'></iq>"
