@@ -17,10 +17,6 @@ CFLAGS+=-I$(GAIM)/libpurple \
 CFLAGS+=-pipe -mno-cygwin -mms-bitfields
 CFLAGS+=-include win32dep.h
 
-# -g -include win32dep.h -DHAVE_CONFIG_H -I. -I./lib -I../../../../win32-dev/gtk_2_0/include -I../../../../win32-dev/gtk_2_0/i
-#nclude/glib-2.0 -I../../../../win32-dev/gtk_2_0/lib/glib-2.0/include -I../../../libpurple -I../../../libpurple/win32 -I../../.. -o gg-utils.
-#o -c gg-utils.c
-
 LDFLAGS=-L$(GTK)/lib \
 	-L$(GAIM)/libpurple \
 	-lglib-2.0 \
