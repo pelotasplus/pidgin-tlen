@@ -685,6 +685,12 @@ tlen_process_notification(TlenSession *tlen, xmlnode *xml)
 	if (!type)
 		return 0;
 
+	/* let's strip resource */
+	char *tmp = strchr(from, '/');
+	if (tmp) {
+		*tmp = '\0';
+	}
+
 	if (strcmp(type, "t") == 0) {
 		 serv_got_typing(tlen->gc, from, 10, PURPLE_TYPING);
 	}
