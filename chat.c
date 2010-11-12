@@ -1247,9 +1247,9 @@ tlen_chat_process_p(TlenSession *tlen, xmlnode *xml)
 
 				if (msg2) {
 					/* Safe, if msg3 is NULL concat will stop */
-					tmp = g_strconcat(msg1, msg2, msg3, NULL);
+					tmp = g_strconcat(msg1, msg2, msg3, (void *) NULL);
 				} else {
-					tmp = g_strconcat(msg1, msg3, NULL);
+					tmp = g_strconcat(msg1, msg3, (void *) NULL);
 				}
 
 				g_free(msg1);

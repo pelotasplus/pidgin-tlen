@@ -436,10 +436,10 @@ tlen_set_buddy_status(TlenSession *tlen, PurpleAccount *account, PurpleBuddy *bu
 		g_free(show);
 
 	if (desc) {
-		purple_prpl_got_user_status(account, buddy->name, st, "message", desc, NULL);
+		purple_prpl_got_user_status(account, buddy->name, st, "message", desc, (void *) NULL);
 		g_free(desc);
 	} else
-		purple_prpl_got_user_status(account, buddy->name, st, NULL);
+		purple_prpl_got_user_status(account, buddy->name, st, (void *) NULL);
 }
 
 void
@@ -1323,7 +1323,7 @@ tlen_process_iq(TlenSession *tlen, xmlnode *xml)
 
 			g_free(name);
 
-			purple_prpl_got_user_status(tlen->gc->account, b->name, "offline", NULL);
+			purple_prpl_got_user_status(tlen->gc->account, b->name, "offline", (void *) NULL);
 		}
 
 		tlen->roster_parsed = 1;
@@ -1469,37 +1469,37 @@ tlen_status_types(PurpleAccount *account)
 
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_AVAILABLE, "available",
                         _("Available"), TRUE, TRUE, FALSE, "message", _("Message"),
-                        purple_value_new(PURPLE_TYPE_STRING), NULL);
+                        purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type);
                         
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_AVAILABLE, "chat",
                         _("Chatty"), TRUE, TRUE, FALSE, "message", _("Message"),
-                        purple_value_new(PURPLE_TYPE_STRING), NULL); 
+                        purple_value_new(PURPLE_TYPE_STRING), (void *) NULL); 
         types = g_list_append(types, type);
                         
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_AWAY, "away",
                         _("Away"), TRUE, TRUE, FALSE, "message", _("Message"),
-                        purple_value_new(PURPLE_TYPE_STRING), NULL);
+                        purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type); 
                         
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_EXTENDED_AWAY, "xa",
                         _("Extended Away"), TRUE, TRUE, FALSE, "message", _("Message"),
-                        purple_value_new(PURPLE_TYPE_STRING), NULL);
+                        purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type);
 
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_UNAVAILABLE, "dnd",
                         _("Do Not Disturb"), TRUE, TRUE, FALSE, "message", _("Message"),
-                        purple_value_new(PURPLE_TYPE_STRING), NULL);
+                        purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type);
 
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_INVISIBLE, "invisible",
                         _("Invisible"), TRUE, TRUE, FALSE, "message", _("Message"),
-			purple_value_new(PURPLE_TYPE_STRING), NULL);
+			purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type);
 
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_OFFLINE, "offline",
                         _("Offline"), TRUE, TRUE, FALSE, "message", _("Message"),
-                        purple_value_new(PURPLE_TYPE_STRING), NULL);
+                        purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type);
                         
 	// purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_status_types\n");

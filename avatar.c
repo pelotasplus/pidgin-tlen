@@ -210,14 +210,14 @@ static void
 tlen_avatar_read_cb(gpointer data, gint source, PurpleInputCondition cond)
 {
         char buf[512];
-        gssize len;
+        ssize_t len;
 	TlenSession *tlen = data;
 
         len = read(source, buf, sizeof(buf) - 1);
         if (len < 0 && errno == EAGAIN)
                 return;
 	if (len <= 0) {
-                purple_debug_error("tlen_avatar", "read(%d): %d %s\n", len, errno, g_strerror(errno));
+                purple_debug_error("tlen_avatar", "read(%zd): %d %s\n", len, errno, g_strerror(errno));
 		tlen_avatar_disconnect(tlen);
                 return;
         }

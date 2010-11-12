@@ -60,7 +60,7 @@
 #  define _(x) ((char *)x)
 #endif
 
-#define TLEN_VERSION	"20100205"
+#define TLEN_VERSION	"20101112"
 
 #define SERVER_ADDRESS	"s1.tlen.pl"
 #define SERVER_PORT	443
