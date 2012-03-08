@@ -654,7 +654,7 @@ tlen_process_message(TlenSession *tlen, xmlnode *xml)
 	}
 
 	serv_got_im(tlen->gc, from, msg, 0, sent);
-
+	g_free(msg);
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_process_message\n");
 
