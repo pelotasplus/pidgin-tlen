@@ -1006,7 +1006,9 @@ tlen_pubdir_edit_user_info(TlenSession *tlen, xmlnode *item)
 	purple_request_fields_add_group(fields, group);
 
 	if (item != NULL) {
-		purple_debug(PURPLE_DEBUG_INFO, "tlen", "item=%s\n", xmlnode_to_formatted_str(item, &size));
+		decoded = xmlnode_to_formatted_str(item, &size);
+		purple_debug(PURPLE_DEBUG_INFO, "tlen", "item=%s\n", decoded);
+		g_free(decoded);
 	}
 
 	for (i = 0; i < sizeof(tlen_user_template)/sizeof(tlen_user_template[0]); i++) {
@@ -1370,11 +1372,14 @@ tlen_process_data(TlenSession *tlen, xmlnode *xml)
 {
 	int ret = 0;
 	int size;
+	char *xmlstr;
 
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_process_data\n");
 	purple_debug(PURPLE_DEBUG_INFO, "tlen", "xml->name %s\n", xml->name);
-
-	purple_debug(PURPLE_DEBUG_INFO, "tlen", "xml=\n%s\n", xmlnode_to_formatted_str(xml, &size));
+	/* FIXME: do we really need this debug? */
+	xmlstr = xmlnode_to_formatted_str(xml, &size);
+	purple_debug(PURPLE_DEBUG_INFO, "tlen", "xml=\n%s\n", xmlstr);
+	g_free(xmlstr);
 
 	/* authorization, chat query responses */
 	if (strncmp(xml->name, "iq", 2) == 0) {
@@ -1465,7 +1470,7 @@ tlen_status_types(PurpleAccount *account)
         PurpleStatusType *type;
         GList *types = NULL;
 
-	// purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_status_types\n");
+        // purple_debug(PURPLE_DEBUG_INFO, "tlen", "-> tlen_status_types\n");
 
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_AVAILABLE, "available",
                         _("Available"), TRUE, TRUE, FALSE, "message", _("Message"),
@@ -1494,7 +1499,7 @@ tlen_status_types(PurpleAccount *account)
 
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_INVISIBLE, "invisible",
                         _("Invisible"), TRUE, TRUE, FALSE, "message", _("Message"),
-			purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
+                       purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type);
 
         type = purple_status_type_new_with_attrs(PURPLE_STATUS_OFFLINE, "offline",
@@ -1502,9 +1507,9 @@ tlen_status_types(PurpleAccount *account)
                         purple_value_new(PURPLE_TYPE_STRING), (void *) NULL);
         types = g_list_append(types, type);
                         
-	// purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_status_types\n");
+        // purple_debug(PURPLE_DEBUG_INFO, "tlen", "<- tlen_status_types\n");
 
-	return types;
+        return types;
 }
 
 void
